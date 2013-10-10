@@ -50,11 +50,9 @@ wrap = ($) ->
 			handleW = @getTotalHandleWidth()
 			bounds = @track.getBoundingClientRect()
 
-			console.log "Handle is #{handleW}px wide"
-				
 			left = bounds.left - ( handleW / 2 )
 			right = bounds.right
-			width = bounds.width + handleW
+			width = bounds.width + handleW + 1 # +1 so we don't run into rounding issues
 
 			{ left, right, width }
 		
@@ -67,9 +65,9 @@ wrap = ($) ->
 		getSnapPoints: ->
 			width = @track.getBoundingClientRect().width
 			distBetweenPoints = width / ( @opts.steps - 1 )
-			
-			( distBetweenPoints * i for i in [0..@opts.steps] )
-		
+
+			return ( distBetweenPoints * i for i in [0...@opts.steps] )
+
 		convertFloatToPx: (float) ->
 			@track.clientWidth * float
 		
@@ -96,8 +94,6 @@ wrap = ($) ->
 				@draggable.x / ( @draggable.vars.bounds.width - @handle.clientWidth )
 
 		setValue: (value, updateDraggable = yes, pxValue = no) ->
-			oldValue = @value
-
 			if pxValue
 				@value = @convertPxToFloat value
 			else
@@ -106,8 +102,7 @@ wrap = ($) ->
 
 			TweenLite.set( @handle, { x: value } )
 
-			if updateDraggable 
-				@draggable.update()
+			if updateDraggable then @draggable.update()
 
 			return @value
 		
