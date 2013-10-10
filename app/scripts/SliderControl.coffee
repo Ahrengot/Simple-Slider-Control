@@ -1,11 +1,5 @@
-hasAMD = ( typeof define is "function" and define.amd )
-
-
-
-wrap = ($) ->
-	
+define ["gsap-draggable"], (Draggable) ->	
 	class SliderControl
-	
 		constructor: (@el, opts, value = 0) ->
 			@cacheElements()
 			
@@ -118,32 +112,3 @@ wrap = ($) ->
 		
 		destroy: ->
 			$(window).off()
-			
-
-	# Make SliderControl a global object for those that don't use an AMD
-	window.SliderControl = SliderControl unless hasAMD
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-###
-# Support both AMD and non-AMD setups
-###
-if hasAMD 
-	define( ["jquery"], wrap ) 
-else 
-	wrap jQuery
