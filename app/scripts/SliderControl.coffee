@@ -144,12 +144,6 @@ wrap = ($) ->
 # Support both AMD and non-AMD setups
 ###
 if hasAMD 
-	deps = [
-		"jquery",
-		"bower_components/greensock-js/src/uncompressed/utils/Draggable"
-		"bower_components/greensock-js/src/uncompressed/plugins/CSSPlugin"
-		"bower_components/greensock-js/src/uncompressed/TweenLite"
-	]
-	define( deps, wrap ) 
+	define( ["jquery"], wrap ) 
 else 
 	wrap jQuery
