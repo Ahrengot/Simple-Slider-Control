@@ -42,18 +42,18 @@ module.exports = function (grunt) {
             styles: {
                 files: ['<%= yeoman.app %>/styles/{,*/}*.css'],
                 tasks: ['copy:styles', 'autoprefixer']
-            },
-            livereload: {
-                options: {
-                    livereload: LIVERELOAD_PORT
-                },
-                files: [
-                    '<%= yeoman.app %>/*.html',
-                    '.tmp/styles/{,*/}*.css',
-                    '{.tmp,<%= yeoman.app %>}/scripts/{,*/}*.js',
-                    '<%= yeoman.app %>/images/{,*/}*.{png,jpg,jpeg,gif,webp,svg}'
-                ]
             }
+            // livereload: {
+            //     options: {
+            //         livereload: LIVERELOAD_PORT
+            //     },
+            //     files: [
+            //         '<%= yeoman.app %>/*.html',
+            //         '.tmp/styles/{,*/}*.css',
+            //         '{.tmp,<%= yeoman.app %>}/scripts/{,*/}*.js',
+            //         '<%= yeoman.app %>/images/{,*/}*.{png,jpg,jpeg,gif,webp,svg}'
+            //     ]
+            // }
         },
         connect: {
             options: {
@@ -136,7 +136,7 @@ module.exports = function (grunt) {
                     expand: true,
                     cwd: '<%= yeoman.app %>/scripts',
                     src: '{,*/}*.coffee',
-                    dest: '.tmp/scripts',
+                    dest: '<%= yeoman.app %>/scripts',
                     ext: '.js'
                 }]
             },
