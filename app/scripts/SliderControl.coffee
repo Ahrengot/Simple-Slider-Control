@@ -29,7 +29,6 @@ wrap = ($) ->
 			if @opts.steps then @draggable.vars.snap = @getSnapPoints()
 			
 			# Update position of handle
-			console.log "Value is: ", @value
 			@setValue @value
 		
 		getDefaultOptions: ->
