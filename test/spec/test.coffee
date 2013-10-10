@@ -12,15 +12,15 @@ describe "Basic functionality", ->
 
 	it "Should accept value as an argument when instantiated and update the handle to reflect that value", ->
 		slider = new SliderControl( el, {}, 0.8 )
-
 		expect( slider.value ).to.equal 0.8
-		expect( slider.handle.style ).to.have.property( "left", "80%" )
 		
 	it "Should expose the original Draggable object via the 'draggable' property", ->
 		slider = new SliderControl el
 		expect( slider.draggable ).to.exist
 
 	it "Should support stepped movement along the track"
+
+	it "Should maintain handle position and value during and after resize"
 
 describe "Setting options", ->
 	it "Should properly extend a set of base options", ->

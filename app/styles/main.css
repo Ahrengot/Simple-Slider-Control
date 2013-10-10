@@ -6,7 +6,7 @@ body {
 }
 
 .container, footer .wrap {
-	width: 92%;
+	width: 85%;
 	margin: 3em auto 0;
 	max-width: 30em;
 }
