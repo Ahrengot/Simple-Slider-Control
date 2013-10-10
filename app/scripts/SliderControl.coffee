@@ -43,11 +43,16 @@ wrap = ($) ->
 		init: -> @draggable = new Draggable( @handle, @opts )
 
 		# Helper methods
+		getTotalHandleWidth: ->
+			# Find a way to do this without jQuery
+			$(@handle).outerWidth()
 		getBounds: ->
-			handleW = @handle.clientWidth
+			handleW = @getTotalHandleWidth()
 			bounds = @track.getBoundingClientRect()
+
+			console.log "Handle is #{handleW}px wide"
 				
-			left = bounds.left - handleW / 2
+			left = bounds.left - ( handleW / 2 )
 			right = bounds.right
 			width = bounds.width + handleW
 
@@ -83,11 +88,16 @@ wrap = ($) ->
 		getSlideValue: ->
 			if @opts.steps
 				closest = @getClosestStep @draggable.x
-				return @setValue( closest, yes, yes ) # Returns updated value
+				if @opts.throwProps
+					return @convertPxToFloat closest
+				else
+					return @setValue( closest, yes, yes )
 			else 
 				@draggable.x / ( @draggable.vars.bounds.width - @handle.clientWidth )
 
 		setValue: (value, updateDraggable = yes, pxValue = no) ->
+			oldValue = @value
+
 			if pxValue
 				@value = @convertPxToFloat value
 			else
@@ -95,7 +105,9 @@ wrap = ($) ->
 				value = @convertFloatToPx value
 
 			TweenLite.set( @handle, { x: value } )
-			if updateDraggable then @draggable.update()
+
+			if updateDraggable 
+				@draggable.update()
 
 			return @value
 		
