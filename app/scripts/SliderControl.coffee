@@ -18,7 +18,7 @@ wrap = ($) ->
 			$(window).on( "resize", @handleResize )
 			@handleResize()
 			
-			@setValue( value, value > 0, yes )
+			@setValue( value, value > 0, no )
 		
 		cacheElements: ->
 			@track = @el.querySelector ".track"
@@ -27,7 +27,10 @@ wrap = ($) ->
 		handleResize: =>
 			@draggable.vars.bounds = @getBounds()
 			if @opts.steps then @draggable.vars.snap = @getSnapPoints()
-			@draggable.update()
+			
+			# Update position of handle
+			console.log "Value is: ", @value
+			@setValue @value
 		
 		getDefaultOptions: ->
 			type: "x"
@@ -63,11 +66,11 @@ wrap = ($) ->
 			
 			( distBetweenPoints * i for i in [0..@opts.steps] )
 		
-		convertPercentToPx: (percent) ->
-			@track.clientWidth * ( percent / 100 )
+		convertFloatToPx: (float) ->
+			@track.clientWidth * float
 		
-		convertPxToPercent: (px) ->
-			( px / @track.clientWidth ) * 100
+		convertPxToFloat: (px) ->
+			px / @track.clientWidth
 
 		# Drag logic
 		handleDrag: ->
@@ -81,21 +84,21 @@ wrap = ($) ->
 		getSlideValue: ->
 			if @opts.steps
 				closest = @getClosestStep @draggable.x
-				@setValue( closest, yes, yes )
-				return closest
+				return @setValue( closest, yes, yes ) # Returns updated value
 			else 
 				@draggable.x / ( @draggable.vars.bounds.width - @handle.clientWidth )
 
 		setValue: (value, updateDraggable = yes, pxValue = no) ->
 			if pxValue
-				@value = @convertPxToPercent value
+				@value = @convertPxToFloat value
 			else
 				@value = value
-				value = @convertPercentToPx value
+				value = @convertFloatToPx value
 
 			TweenLite.set( @handle, { x: value } )
-
 			if updateDraggable then @draggable.update()
+
+			return @value
 		
 		# Memory management
 		disable: ->
