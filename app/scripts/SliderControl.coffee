@@ -2,12 +2,9 @@ define ["gsap-draggable"], (Draggable) ->
 	class SliderControl
 		constructor: (@el, opts, value = 0) ->
 			@cacheElements()
-			
+			@proxyCallbacks opts		
 			@opts = $.extend( @getDefaultOptions(), opts )
 			@init()
-			
-			@onDragCb = opts?.onDrag
-			@onDragEndCb = opts?.onDragEnd
 
 			$(window).on( "resize", @handleResize )
 			@handleResize()
@@ -17,6 +14,15 @@ define ["gsap-draggable"], (Draggable) ->
 		cacheElements: ->
 			@track = @el.querySelector ".track"
 			@handle = @el.querySelector ".handle"
+
+		proxyCallbacks: (opts) ->
+			if opts?.onDrag
+				@onDragCb = opts.onDrag
+				delete opts.onDrag
+				
+			if opts?.onDragEnd
+				@onDragEndCb = opts.onDragEnd
+				delete opts.onDragEnd
 		
 		handleResize: =>
 			@draggable.vars.bounds = @getBounds()
@@ -64,7 +70,7 @@ define ["gsap-draggable"], (Draggable) ->
 
 		convertFloatToPx: (float) ->
 			@track.clientWidth * float
-		
+
 		convertPxToFloat: (px) ->
 			px / @track.clientWidth
 
@@ -85,7 +91,8 @@ define ["gsap-draggable"], (Draggable) ->
 				else
 					return @setValue( closest, yes, yes )
 			else 
-				@draggable.x / ( @draggable.vars.bounds.width - @handle.clientWidth )
+				val = @draggable.x / ( @track.clientWidth - @getTotalHandleWidth() )
+				return Math.min( Math.max( val, 0), 1 )
 
 		setValue: (value, updateDraggable = yes, pxValue = no) ->
 			if pxValue
