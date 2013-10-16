@@ -1,4 +1,4 @@
-define ["gsap-draggable"], (Draggable) ->	
+define ->	
 	class SliderControl
 		constructor: (@el, opts, value = 0) ->
 			@cacheElements()
@@ -26,7 +26,7 @@ define ["gsap-draggable"], (Draggable) ->
 		
 		handleResize: =>
 			@draggable.vars.bounds = @getBounds()
-			if @opts.steps then @draggable.vars.snap = @getSnapPoints()
+			if @opts.steps then @draggable.vars.snap = @getValueSteps()
 			
 			# Update position of handle
 			@setValue @value
@@ -56,17 +56,15 @@ define ["gsap-draggable"], (Draggable) ->
 
 			{ left, right, width }
 		
-		getClosestStep: (value) ->
+		getClosestValue: (value) ->
 			steps = @draggable.vars.snap
 			diffs = ( Math.abs( value - step ) for step in steps )
 			minDist = Math.min diffs...
 
 			return steps[i] for val, i in diffs when val is minDist
-		getSnapPoints: ->
-			width = @track.getBoundingClientRect().width
-			distBetweenPoints = width / ( @opts.steps - 1 )
-
-			return ( distBetweenPoints * i for i in [0...@opts.steps] )
+		getValueSteps: ->
+			incrementBy = 1 / @opts.steps
+			return ( incrementBy * i for i in [0...@opts.steps] )
 
 		convertFloatToPx: (float) ->
 			@track.clientWidth * float
@@ -85,11 +83,11 @@ define ["gsap-draggable"], (Draggable) ->
 		
 		getSlideValue: ->
 			if @opts.steps
-				closest = @getClosestStep @draggable.x
+				closest = @getClosestValue @convertPxToFloat @draggable.x
 				if @opts.throwProps
 					return @convertPxToFloat closest
 				else
-					return @setValue( closest, yes, yes )
+					return @setValue( closest, yes, no )
 			else 
 				val = @draggable.x / ( @track.clientWidth - @getTotalHandleWidth() )
 				return Math.min( Math.max( val, 0), 1 )
@@ -118,4 +116,4 @@ define ["gsap-draggable"], (Draggable) ->
 			@handleResize()
 		
 		destroy: ->
-			$(window).off()
+			@disable()

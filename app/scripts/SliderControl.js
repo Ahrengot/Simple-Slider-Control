@@ -1,7 +1,7 @@
 (function() {
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
-  define(["gsap-draggable"], function(Draggable) {
+  define(function() {
     var SliderControl;
     return SliderControl = (function() {
       function SliderControl(el, opts, value) {
@@ -11,10 +11,9 @@
         }
         this.handleResize = __bind(this.handleResize, this);
         this.cacheElements();
+        this.proxyCallbacks(opts);
         this.opts = $.extend(this.getDefaultOptions(), opts);
         this.init();
-        this.onDragCb = opts != null ? opts.onDrag : void 0;
-        this.onDragEndCb = opts != null ? opts.onDragEnd : void 0;
         $(window).on("resize", this.handleResize);
         this.handleResize();
         this.setValue(value, value > 0, false);
@@ -25,10 +24,21 @@
         return this.handle = this.el.querySelector(".handle");
       };
 
+      SliderControl.prototype.proxyCallbacks = function(opts) {
+        if (opts != null ? opts.onDrag : void 0) {
+          this.onDragCb = opts.onDrag;
+          delete opts.onDrag;
+        }
+        if (opts != null ? opts.onDragEnd : void 0) {
+          this.onDragEndCb = opts.onDragEnd;
+          return delete opts.onDragEnd;
+        }
+      };
+
       SliderControl.prototype.handleResize = function() {
         this.draggable.vars.bounds = this.getBounds();
         if (this.opts.steps) {
-          this.draggable.vars.snap = this.getSnapPoints();
+          this.draggable.vars.snap = this.getValueSteps();
         }
         return this.setValue(this.value);
       };
@@ -67,7 +77,7 @@
         };
       };
 
-      SliderControl.prototype.getClosestStep = function(value) {
+      SliderControl.prototype.getClosestValue = function(value) {
         var diffs, i, minDist, step, steps, val, _i, _len;
         steps = this.draggable.vars.snap;
         diffs = (function() {
@@ -88,15 +98,14 @@
         }
       };
 
-      SliderControl.prototype.getSnapPoints = function() {
-        var distBetweenPoints, i, width;
-        width = this.track.getBoundingClientRect().width;
-        distBetweenPoints = width / (this.opts.steps - 1);
+      SliderControl.prototype.getValueSteps = function() {
+        var i, incrementBy;
+        incrementBy = 1 / this.opts.steps;
         return (function() {
           var _i, _ref, _results;
           _results = [];
           for (i = _i = 0, _ref = this.opts.steps; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
-            _results.push(distBetweenPoints * i);
+            _results.push(incrementBy * i);
           }
           return _results;
         }).call(this);
@@ -125,16 +134,17 @@
       };
 
       SliderControl.prototype.getSlideValue = function() {
-        var closest;
+        var closest, val;
         if (this.opts.steps) {
-          closest = this.getClosestStep(this.draggable.x);
+          closest = this.getClosestValue(this.convertPxToFloat(this.draggable.x));
           if (this.opts.throwProps) {
             return this.convertPxToFloat(closest);
           } else {
-            return this.setValue(closest, true, true);
+            return this.setValue(closest, true, false);
           }
         } else {
-          return this.draggable.x / (this.draggable.vars.bounds.width - this.handle.clientWidth);
+          val = this.draggable.x / (this.track.clientWidth - this.getTotalHandleWidth());
+          return Math.min(Math.max(val, 0), 1);
         }
       };
 
@@ -172,7 +182,7 @@
       };
 
       SliderControl.prototype.destroy = function() {
-        return $(window).off();
+        return this.disable();
       };
 
       return SliderControl;
