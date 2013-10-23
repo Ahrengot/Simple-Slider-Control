@@ -14,7 +14,7 @@
         this.proxyCallbacks(opts);
         this.opts = $.extend(this.getDefaultOptions(), opts);
         this.init();
-        $(window).on("resize", this.handleResize);
+        $(window).on("resize.slidercontrol", this.handleResize);
         this.handleResize();
         this.setValue(value, value > 0, false);
       }
@@ -171,13 +171,13 @@
       };
 
       SliderControl.prototype.disable = function() {
-        $(window).off();
+        $(window).off("resize.slidercontrol", this.handleResize);
         return this.draggable.disable();
       };
 
       SliderControl.prototype.enable = function() {
         this.draggable.enable();
-        $(window).on("resize", this.handleResize);
+        $(window).on("resize.slidercontrol", this.handleResize);
         return this.handleResize();
       };
 

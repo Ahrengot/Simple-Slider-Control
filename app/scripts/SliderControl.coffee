@@ -1,16 +1,16 @@
-define ->	
+define ->
 	class SliderControl
 		constructor: (@el, opts, value = 0) ->
 			@cacheElements()
-			@proxyCallbacks opts		
+			@proxyCallbacks opts
 			@opts = $.extend( @getDefaultOptions(), opts )
 			@init()
 
-			$(window).on( "resize", @handleResize )
+			$(window).on( "resize.slidercontrol", @handleResize )
 			@handleResize()
-			
+
 			@setValue( value, value > 0, no )
-		
+
 		cacheElements: ->
 			@track = @el.querySelector ".track"
 			@handle = @el.querySelector ".handle"
@@ -19,18 +19,18 @@ define ->
 			if opts?.onDrag
 				@onDragCb = opts.onDrag
 				delete opts.onDrag
-				
+
 			if opts?.onDragEnd
 				@onDragEndCb = opts.onDragEnd
 				delete opts.onDragEnd
-		
+
 		handleResize: =>
 			@draggable.vars.bounds = @getBounds()
 			if @opts.steps then @draggable.vars.snap = @getValueSteps()
-			
+
 			# Update position of handle
 			@setValue @value
-		
+
 		getDefaultOptions: ->
 			type: "x"
 			zIndexBoost: no
@@ -39,7 +39,7 @@ define ->
 			onDragScope: @
 			onDragEnd: @handleDragEnd
 			onDragEndScope: @
-		
+
 		init: -> @draggable = new Draggable( @handle, @opts )
 
 		# Helper methods
@@ -55,7 +55,7 @@ define ->
 			width = bounds.width + handleW + 1 # +1 so we don't run into rounding issues
 
 			{ left, right, width }
-		
+
 		getClosestValue: (value) ->
 			steps = @draggable.vars.snap
 			diffs = ( Math.abs( value - step ) for step in steps )
@@ -76,11 +76,11 @@ define ->
 		handleDrag: ->
 			@value = @getSlideValue()
 			if @onDragCb then @onDragCb.apply( @, arguments )
-		
+
 		handleDragEnd: ->
 			@value = @getSlideValue()
 			if @onDragEndCb then @onDragEndCb.apply( @, arguments )
-		
+
 		getSlideValue: ->
 			if @opts.steps
 				closest = @getClosestValue @convertPxToFloat @draggable.x
@@ -88,7 +88,7 @@ define ->
 					return @convertPxToFloat closest
 				else
 					return @setValue( closest, yes, no )
-			else 
+			else
 				val = @draggable.x / ( @track.clientWidth - @getTotalHandleWidth() )
 				return Math.min( Math.max( val, 0), 1 )
 
@@ -104,16 +104,16 @@ define ->
 			if updateDraggable then @draggable.update()
 
 			return @value
-		
+
 		# Memory management
 		disable: ->
-			$(window).off()
+			$(window).off( "resize.slidercontrol", @handleResize )
 			@draggable.disable()
-		
+
 		enable: ->
 			@draggable.enable()
-			$(window).on( "resize", @handleResize )
+			$(window).on( "resize.slidercontrol", @handleResize )
 			@handleResize()
-		
+
 		destroy: ->
 			@disable()
