@@ -13,6 +13,10 @@
         this.cacheElements();
         this.proxyCallbacks(opts);
         this.opts = $.extend(this.getDefaultOptions(), opts);
+        if (opts.steps) {
+          this.opts.stepCount = opts.steps;
+          this.opts.liveSnap = this.getPxSteps();
+        }
         this.init();
         $(window).on("resize.slidercontrol", this.handleResize);
         this.handleResize();
@@ -36,9 +40,14 @@
       };
 
       SliderControl.prototype.handleResize = function() {
-        this.draggable.vars.bounds = this.getBounds();
-        if (this.opts.steps) {
-          this.draggable.vars.snap = this.getValueSteps();
+        var steps;
+        this.draggable.vars.bounds = {
+          minX: 0,
+          maxX: this.getBounds().width + 1
+        };
+        if (this.opts.stepCount) {
+          steps = this.getPxSteps();
+          this.draggable.vars.liveSnap = steps;
         }
         return this.setValue(this.value);
       };
@@ -47,7 +56,10 @@
         return {
           type: "x",
           zIndexBoost: false,
-          bounds: this.getBounds(),
+          bounds: {
+            minX: 0,
+            maxX: this.getBounds().width + 1
+          },
           onDrag: this.handleDrag,
           onDragScope: this,
           onDragEnd: this.handleDragEnd,
@@ -59,27 +71,13 @@
         return this.draggable = new Draggable(this.handle, this.opts);
       };
 
-      SliderControl.prototype.getTotalHandleWidth = function() {
-        return $(this.handle).outerWidth();
-      };
-
       SliderControl.prototype.getBounds = function() {
-        var bounds, handleW, left, right, width;
-        handleW = this.getTotalHandleWidth();
-        bounds = this.track.getBoundingClientRect();
-        left = bounds.left - (handleW / 2);
-        right = bounds.right;
-        width = bounds.width + handleW + 1;
-        return {
-          left: left,
-          right: right,
-          width: width
-        };
+        return this.track.getBoundingClientRect();
       };
 
       SliderControl.prototype.getClosestValue = function(value) {
         var diffs, i, minDist, step, steps, val, _i, _len;
-        steps = this.draggable.vars.snap;
+        steps = this.getValueSteps();
         diffs = (function() {
           var _i, _len, _results;
           _results = [];
@@ -100,15 +98,54 @@
 
       SliderControl.prototype.getValueSteps = function() {
         var i, incrementBy;
-        incrementBy = 1 / this.opts.steps;
-        return (function() {
-          var _i, _ref, _results;
-          _results = [];
-          for (i = _i = 0, _ref = this.opts.steps; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
-            _results.push(incrementBy * i);
+        if (!this.valueSteps) {
+          incrementBy = 1 / (this.opts.stepCount - 1);
+          this.valueSteps = (function() {
+            var _i, _ref, _results;
+            _results = [];
+            for (i = _i = 0, _ref = this.opts.stepCount; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
+              _results.push(incrementBy * i);
+            }
+            return _results;
+          }).call(this);
+          return this.valueSteps;
+        } else {
+          return this.valueSteps;
+        }
+      };
+
+      SliderControl.prototype.getPxSteps = function() {
+        var step, _i, _len, _ref, _results;
+        _ref = this.getValueSteps();
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          step = _ref[_i];
+          switch (step) {
+            case 0:
+              _results.push(step);
+              break;
+            case 1:
+              _results.push(Math.round(this.getBounds().width));
+              break;
+            default:
+              _results.push(Math.round(this.convertFloatToPx(step)));
           }
-          return _results;
-        }).call(this);
+        }
+        return _results;
+      };
+
+      SliderControl.prototype.getValueFromPxStep = function(px) {
+        var i, matchingValue, val, _i, _len, _ref;
+        _ref = this.opts.liveSnap;
+        for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+          val = _ref[i];
+          if (!(val === px)) {
+            continue;
+          }
+          this.currentStep = i;
+          matchingValue = this.getValueSteps()[i];
+          return matchingValue;
+        }
       };
 
       SliderControl.prototype.convertFloatToPx = function(float) {
@@ -134,16 +171,11 @@
       };
 
       SliderControl.prototype.getSlideValue = function() {
-        var closest, val;
-        if (this.opts.steps) {
-          closest = this.getClosestValue(this.convertPxToFloat(this.draggable.x));
-          if (this.opts.throwProps) {
-            return this.convertPxToFloat(closest);
-          } else {
-            return this.setValue(closest, true, false);
-          }
+        var val;
+        if (this.opts.stepCount) {
+          return this.getValueFromPxStep(this.draggable.x);
         } else {
-          val = this.draggable.x / (this.track.clientWidth - this.getTotalHandleWidth());
+          val = this.draggable.x / this.track.clientWidth;
           return Math.min(Math.max(val, 0), 1);
         }
       };
